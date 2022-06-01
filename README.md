@@ -12,26 +12,26 @@ Channels can be added to a chatroom as terminals, where registered users can sen
 
 There are 3 levels of permissions. Anyone may create a chatroom, and if they do, they become its owner. In addition, they are able to appoint admins to help run the chatroom. Finally, there are the users, who may make use of the chatroom at any available terminal, but not change anything about the inner functioning. The functions these levels are allowed to use are:
 
-<h5>Owner</h5>
+<h4>Owner</h4>
 
-Add Admin
-Remove Admin
-Delete Chatroom
-Transfer Ownership
+Add Admin  
+Remove Admin  
+Delete Chatroom  
+Transfer Ownership  
 
-<h5>Admin</h5>
+<h4>Admin</h4>
 
-Add Terminal (requires "Manage Channels" permissions in the server this is attempted)
-Remove Terminal
-Add User
-Remove User
-Change User's Name
+Add Terminal (requires "Manage Channels" permissions in the server this is attempted)  
+Remove Terminal  
+Add User  
+Remove User  
+Change User's Name  
 
-<h5>User</h5>
+<h4>User</h4>
 
-Send Messages
-Change Own Username
-Change Own Profile Picture
+Send Messages  
+Change Own Username  
+Change Own Profile Picture  
 
 --------------------------------------------------------------
 
@@ -39,38 +39,38 @@ Change Own Profile Picture
 
 There are some files that are universally used by the chatroom bot to keep track of information and find things out more efficiently. These files are:
 
-OwnerMapping.json
-AdminMapping.json
-UserMapping.json
-ChannelMapping.json
+OwnerMapping.json  
+AdminMapping.json  
+UserMapping.json  
+ChannelMapping.json  
 
-<h5>OwnerMapping.json</h5>
+<h4>OwnerMapping.json</h4>
 
-Maps out a list of chatroom ids to their owner's discord id. Follows the format:
-"ownerid": ["chatroomid", "chatroomid", ...],
-"ownerid": ["chatroomid", "chatroomid", ...],
-...
+Maps out a list of chatroom ids to their owner's discord id. Follows the format:  
+"ownerid": ["chatroomid", "chatroomid", ...],  
+"ownerid": ["chatroomid", "chatroomid", ...],  
+...  
 
-<h5>AdminMapping.json</h5>
+<h4>AdminMapping.json</h4>
 
-Maps out a list of chatroom ids to an admin's discord id. Follows the format:
-"adminid": ["chatroomid", "chatroomid", ...],
-"adminid": ["chatroomid", "chatroomid", ...],
-...
+Maps out a list of chatroom ids to an admin's discord id. Follows the format:  
+"adminid": ["chatroomid", "chatroomid", ...],  
+"adminid": ["chatroomid", "chatroomid", ...],  
+...  
 
-<h5>UserMapping.json</h5>
+<h4>UserMapping.json</h4>
 
-Maps out a list of chatroom ids to a user's discord id. Follows the format:
-"userid": ["chatroomid", "chatroomid", ...],
-"userid": ["chatroomid", "chatroomid", ...],
-...
+Maps out a list of chatroom ids to a user's discord id. Follows the format:  
+"userid": ["chatroomid", "chatroomid", ...],  
+"userid": ["chatroomid", "chatroomid", ...],  
+...  
 
-<h5>ChannelMapping.json</h5>
+<h4>ChannelMapping.json</h4>
 
-Maps out a chatroom id to a channel's discord id. Follows the format:
-"channelid": "chatroomid",
-"channelid": "chatroomid",
-...
+Maps out a chatroom id to a channel's discord id. Follows the format:  
+"channelid": "chatroomid",  
+"channelid": "chatroomid",  
+...  
 
 --------------------------------------------------------------
 
@@ -78,33 +78,34 @@ Maps out a chatroom id to a channel's discord id. Follows the format:
 
 Each chatroom contains 3 files:
 
-Chatroom.json
-Users.json
-Log.txt
+Chatroom.json  
+Users.json  
+Log.txt  
 
-<h5>Chatroom.json</h5>
+<h4>Chatroom.json</h4>
 
 Contains the discord user id of the owner of the chatroom, the discord user ids of the admins of the chatroom, and the discord channel ids of the terminals of the chatroom. Follows the format:
-"owner": "ownerid",
-"admins": ["adminid", "adminid", ...]
-"terminals": ["channelid", "channelid", ...]
+"owner": "ownerid",  
+"admins": ["adminid", "adminid", ...]  
+"terminals": ["channelid", "channelid", ...]  
 
 
-<h5>Users.json</h5>
-Contains the discord user ids of the users of the chatroom, whether they are registered to send messages ("Y"/"N"), their assumed username, and a link to their assumed profile picture. Follows the format:
-"userid": ["Y/N", "username", "profile picture link"],
-"userid": ["Y/N", "username", "profile picture link"],
-...
+<h4>Users.json</h4>
 
-<h5>Log.txt</h5>
+Contains the discord user ids of the users of the chatroom, whether they are registered to send messages ("Y"/"N"), their assumed username, and a link to their assumed profile picture. Follows the format:  
+"userid": ["Y/N", "username", "profile picture link"],  
+"userid": ["Y/N", "username", "profile picture link"],  
+...  
+
+<h4>Log.txt</h4>
 
 Contains the message and update logs of the entire chatroom. 
 
-Message logs are kept in a single line in the format:
-"M"  UserId  Message
+Message logs are kept in a single line in the format:  
+"M"  UserId  Message  
 
-Username update logs are kept in a single line in the format:
-"UU"  UserId  OldUsername  NewUsername
+Username update logs are kept in a single line in the format:  
+"UU"  UserId  OldUsername  NewUsername  
 
-Profile Picture update logs are kept in a single line in the format:
-"PP"  UserId  NewProfilePictureLink
+Profile Picture update logs are kept in a single line in the format:  
+"PP"  UserId  NewProfilePictureLink  
