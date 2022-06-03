@@ -1,3 +1,5 @@
+const DEBUG = 0;
+
 //import Discord
 const Discord = require('discord.js');
 
@@ -29,6 +31,24 @@ client.once('ready', async () => {
         name: 'ping',
         description: 'Replies with pong.',
     })
+
+    switch(DEBUG)
+    {
+        case 1:
+            const fwtests = require('./tests/filewritingtests.js');
+            fwtests.runtests();
+            break;
+        case 2:
+            const frtests = require('./tests/filereadingtests.js');
+            frtests.runtests();
+            break;
+        case 3:
+            const veriftests = require('./tests/verificationtests.js');
+            veriftests.runtests();
+            break;
+        default:
+            break;
+    }
 })
 
 //client error handler
