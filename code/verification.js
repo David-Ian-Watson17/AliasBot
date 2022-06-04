@@ -72,6 +72,13 @@ var validUsername = function(username)
     }
     return err.INVALID_TYPE;
 }
+
+//validProfilePicture
+//stub, returns true
+var validProfilePicture = function(profilepicture){
+    return true;
+}
+
 //validLogType
 //returns true if the entered value is a valid string to be entered into the log as an event type
 var validLogType = function(logtype)
@@ -91,5 +98,6 @@ module.exports = {
     validChannel: validChannel,
     validGuild: validGuild,
     validUsername: validUsername,
+    validProfilePicture: validProfilePicture,
     validLogType: validLogType
 }

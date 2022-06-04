@@ -36,10 +36,15 @@ isRegisteredUser
 username
 profilePicture
 ---------------- Largescale retrieval functions
+retrieveAllChatroomIds
 retrieveOwner
 retrieveAdmins
 retrieveTerminals
 retrieveUsers
+retrieveOwnerMapping
+retrieveAdminMapping
+retrieveTerminalMapping
+retrieveUserMapping
 ---------------- Log retrieval functions
 retrieveLog
 */
@@ -51,7 +56,7 @@ const err = require('../returncodes.json');
 //returns all the chatrooms in which a given discord user is the owner
 //returns an array with all the chatroom ids they belong to
 var ownerOf = function(userid){
-    var ownerrawdata = fs.readFileSync(`./chatrooms/ownermapping.json`);
+    var ownerrawdata = fs.readFileSync(`./chatroommapping/ownermapping.json`);
     var ownerdata = JSON.parse(ownerrawdata.toString());
     if(ownerdata[`${userid}`])
         return ownerdata[`${userid}`];
@@ -62,7 +67,7 @@ var ownerOf = function(userid){
 //returns all the chatrooms in which a given discord user is an admin
 //returns an array with all the chatroom ids they belong to
 var adminFor = function(userid){
-    var adminrawdata = fs.readFileSync(`./chatrooms/adminmapping.json`);
+    var adminrawdata = fs.readFileSync(`./chatroommapping/adminmapping.json`);
     var admindata = JSON.parse(adminrawdata.toString());
     if(admindata[`${userid}`])
         return admindata[`${userid}`];
@@ -73,7 +78,7 @@ var adminFor = function(userid){
 //returns all the chatrooms in which a given discord user is a user
 //returns an array with all the chatroom ids they belong to
 var userIn = function(userid){
-    var userrawdata = fs.readFileSync(`./chatrooms/usermapping.json`);
+    var userrawdata = fs.readFileSync(`./chatroommapping/usermapping.json`);
     var userdata = JSON.parse(userrawdata.toString());
     if(userdata[`${userid}`])
         return userdata[`${userid}`];
@@ -84,11 +89,11 @@ var userIn = function(userid){
 //returns all the chatrooms in which a given channel is a terminal
 //returns an array with all the chatroom ids it belongs to
 var terminalIn = function(channelid){
-    var terminalrawdata = fs.readFileSync(`./chatrooms/channelmapping.json`);
+    var terminalrawdata = fs.readFileSync(`./chatroommapping/channelmapping.json`);
     var terminaldata = JSON.parse(terminalrawdata.toString());
     if(terminaldata[`${channelid}`])
         return terminaldata[`${channelid}`];
-    return [];
+    return "";
 }
 
 //isOwner
@@ -232,6 +237,13 @@ var profilePicture = function(chatroom, userid){
     return err.CHATROOM_DOESNT_EXIST;
 }
 
+//retrieveAllChatroomIds
+//retrieves the ids for all chatrooms this bot has access to
+//returns them in an array of strings
+var retrieveAllChatroomIds = function(){
+    return fs.readdirSync(`./chatrooms`);
+}
+
 //retrieveOwner
 //retrieves the owner for a chatroom
 //returns a single user id
@@ -300,6 +312,70 @@ var retrieveUsers = function(chatroom){
     return err.CHATROOM_DOESNT_EXIST;
 }
 
+//retrieveOwnerMapping
+//retrieves owner mappings, all the owners' discord user ids as well as what chatrooms they own
+//returns a JSON object with the owner ids as keys and an array containing the chatroom ids as values
+var retrieveOwnerMapping = function(){
+    try{
+        var ownermappingraw = fs.readFileSync(`./chatroommapping/ownermapping.json`);
+        var ownermapping = JSON.parse(ownermappingraw.toString());
+        return ownermapping;
+    }
+    catch(error)
+    {
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
+//retrieveAdminMapping
+//retrieves admin mappings, all the admins' discord user ids as well as what chatrooms they admin for
+//returns a JSON object with the owner ids as keys and an array containing the chatroom ids as values
+var retrieveAdminMapping = function(){
+    try{
+        var adminmappingraw = fs.readFileSync(`./chatroommapping/adminmapping.json`);
+        var adminmapping = JSON.parse(adminmappingraw.toString());
+        return adminmapping;
+    }
+    catch(error)
+    {
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
+//retrieveTerminalMapping
+//retrieves terminal mappings, all the channels' discord ids as well as what chatrooms they are a terminal in
+//returns a JSON object with the channel ids as keys and an array containing the chatroom ids as values
+var retrieveTerminalMapping = function(){
+    try{
+        var terminalmappingraw = fs.readFileSync(`./chatroommapping/channelmapping.json`);
+        var terminalmapping = JSON.parse(terminalmappingraw.toString());
+        return terminalmapping;
+    }
+    catch(error)
+    {
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
+//retrieveUserMapping
+//retrieves user mappings, all the users' discord ids as well as what chatrooms they are a user in
+//returns a JSON object with the user ids as keys and an array containing the chatroom ids as values
+var retrieveUserMapping = function(){
+    try{
+        var usermappingraw = fs.readFileSync(`./chatroommapping/usermapping.json`);
+        var usermapping = JSON.parse(usermappingraw.toString());
+        return usermapping;
+    }
+    catch(error)
+    {
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
 //retrieveLog
 //retrieves the log for a chatroom
 //returns an array with all the individual messages/events contained
@@ -330,9 +406,14 @@ module.exports = {
     isRegisteredUser: isRegisteredUser,
     username: username,
     profilePicture: profilePicture,
+    retrieveAllChatroomIds:retrieveAllChatroomIds,
     retrieveOwner: retrieveOwner,
     retrieveAdmins: retrieveAdmins,
     retrieveUsers: retrieveUsers,
     retrieveTerminals: retrieveTerminals,
+    retrieveOwnerMapping: retrieveOwnerMapping,
+    retrieveAdminMapping: retrieveAdminMapping,
+    retrieveTerminalMapping: retrieveTerminalMapping,
+    retrieveUserMapping: retrieveUserMapping,
     retrieveLog: retrieveLog
 }

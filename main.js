@@ -46,6 +46,10 @@ client.once('ready', async () => {
             const veriftests = require('./tests/verificationtests.js');
             veriftests.runtests();
             break;
+        case 4:
+            const dhtests = require('./tests/datahandlertests.js');
+            dhtests.runtests();
+            break;
         default:
             break;
     }

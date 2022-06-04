@@ -267,6 +267,25 @@ var profilePictureTests = function(){
     fw.deleteChatroomFiles(111111);
 }
 
+var retrieveAllChatroomIdsTests = function(){
+    var return1 = fr.retrieveAllChatroomIds();
+    
+    fw.createChatroomFiles(111111);
+    
+    var return2 = fr.retrieveAllChatroomIds();
+
+    fw.createChatroomFiles(222222);
+
+    var return3 = fr.retrieveAllChatroomIds();
+
+    console.log(`retrieveAllChatroomIds no chatrooms: ${return1.equals([])}`);
+    console.log(`retrieveAllChatroomIds one chatroom: ${return2.equals(["111111"])}`);
+    console.log(`retrieveAllChatroomIds two chatrooms: ${return3.equals(["111111", "222222"])}`);
+
+    fw.deleteChatroomFiles(111111);
+    fw.deleteChatroomFiles(222222);
+}
+
 var retrieveOwnerTests = function(){
     fw.createChatroomFiles(111111, 1111111111111111);
 
@@ -391,6 +410,7 @@ module.exports = {
         isRegisteredUserTests();
         usernameTests();
         profilePictureTests();
+        retrieveAllChatroomIdsTests();
         retrieveOwnerTests();
         retrieveAdminsTests();
         retrieveTerminalsTests();
