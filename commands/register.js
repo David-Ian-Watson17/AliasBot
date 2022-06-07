@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const mh = require('../chatroomcode/messagehandler.js');
 const dh = require('../chatroomcode/datahandler.js');
 const err = require('../returncodes.json');
 
@@ -53,6 +54,10 @@ module.exports = {
 
         var returncode = dh.register(chatroomid, userid);
         console.log(`register returncode: ${returncode}`);
+
+        //log registration
+        dh.logEvent(chatroomid, userid, "R", `${username}  ${profilepicture}`);
+        mh.updateEvent(chatroomid, "R", {username: username, profilepic: profilepicture});
 
         await interaction.reply({content: "Successfully registered! Try sending a message!", ephemeral: true});
     }

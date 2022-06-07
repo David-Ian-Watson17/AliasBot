@@ -1,4 +1,4 @@
-const fw = require('../code/filewriting.js');
+const fw = require('../chatroomcode/filewriting.js');
 const err = require('../returncodes.json');
 
 var randomIdGeneratorTests = function(){

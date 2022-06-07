@@ -64,7 +64,15 @@ var validUsername = function(username)
         {
             if(username.length > 0)
             {
-                return true;
+                if(!username.includes("  "))
+                {
+                    if(!username.includes("\n"))
+                    {
+                        return true;
+                    }
+                    return err.INVALID_VALUE;
+                }
+                return err.INVALID_VALUE;
             }
             return err.STRING_TOO_SHORT;
         }
@@ -87,6 +95,7 @@ var validLogType = function(logtype)
         case "PP":
         case "UU":
         case "M":
+        case "R":
             return true;
         default:
             return false;

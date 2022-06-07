@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const mh = require('../chatroomcode/messagehandler.js');
 const dh = require('../chatroomcode/datahandler.js');
 const err = require('../returncodes.json');
 
@@ -31,12 +32,18 @@ module.exports = {
             return;
         }
 
+        var olduserdata = dh.retrieveUserData(chatroomid, userid);
+
         var returncode = dh.updateProfilePicture(chatroomid, userid, profilepicture);
         if(returncode != err.GOOD_EXECUTE){
             console.log(`updateProfilePicture returncode: ${returncode}`);
             await interaction.reply({content: "Something went wrong when setting your profile picture!", ephemeral: true});
             return;
         }
+
+        //log change
+        dh.logEvent(chatroomid, userid, "PP", `${olduserdata.username}  ${olduserdata.profilepic}  ${profilepicture}`);
+        mh.updateEvent(chatroomid, "PP", {username: olduserdata.username, profilepic: profilepicture});
 
         await interaction.reply({content: "Your profile picture has been set to:", files: [profilepicture], ephemeral: true});
     }

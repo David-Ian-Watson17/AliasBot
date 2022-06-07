@@ -10,6 +10,7 @@ checkMessage
 ------------- Senders
 sendMessage
 */
+var Discord = require('discord.js');
 var client = require('../client.js').client();
 var err = require('../returncodes.json');
 var dh = require('./datahandler');
@@ -77,6 +78,10 @@ var sendMessage = function(channels, username, profilepicture, content, attachme
             //retrieve channel for terminal
             var chn = client.channels.cache.get(channelid);
 
+            if(chn == undefined){
+                dh.brokenchannel(channelid);
+            }
+
             //retrieve webhooks for channel
             chn.fetchWebhooks()
                 .then(hooks => {
@@ -118,6 +123,54 @@ var sendMessage = function(channels, username, profilepicture, content, attachme
     })
 }
 
+var updateEvent = function(chatroomid, type, updateobject){
+    var message = "";
+    var title = "";
+    var thumbnail = "";
+    switch(type){
+        case "UU":
+            title = "Username Changed";
+            var oldusername = updateobject.oldusername;
+            var newusername = updateobject.newusername;
+            message = `${oldusername} changed their name to ${newusername}.`;
+            thumbnail = updateobject.profilepic;
+            break;
+        case "PP":
+            title = "Profile Picture Changed";
+            var username = updateobject.username;
+            message = `${username} changed their profile picture.`;
+            thumbnail = updateobject.profilepic;
+            break;
+        case "R":
+            title = "New User";
+            var username = updateobject.username;
+            message = `${username} has joined the chatroom!`;
+            thumbnail = updateobject.profilepic;
+            break;
+        default:
+            break;
+    }
+
+    var terminals = dh.retrieveTerminals(chatroomid);
+    sendUpdate(terminals, title, thumbnail, message);
+}
+
+var sendUpdate = function(terminals, title, thumbnail, message){
+    //create embed
+    var embed = new Discord.MessageEmbed()
+        .setTitle(title)
+        .setThumbnail(thumbnail)
+        .setDescription(`*${message}*`);
+
+    terminals.forEach(channelid => {
+        var channel = client.channels.cache.get(channelid);
+        channel.send({embeds: [embed]});
+    })
+}
+
 module.exports = {
-    checkMessage: checkMessage
+    checkMessage: checkMessage,
+    updateEvent: updateEvent,
+    sendMessage: sendMessage,
+    sendUpdate: sendUpdate
 }

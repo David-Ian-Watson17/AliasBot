@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const dh = require('../chatroomcode/datahandler.js');
+const mh = require('../chatroomcode/messagehandler.js');
 const err = require('../returncodes.json');
 
 module.exports = {
@@ -31,12 +32,18 @@ module.exports = {
             return;
         }
 
+        var olduserdata = dh.retrieveUserData(chatroomid, userid);
+
         var returncode = dh.updateUsername(chatroomid, userid, username);
         if(returncode != err.GOOD_EXECUTE){
             console.log(`updateusername returncode: ${returncode}`);
-            await interaction.reply({ content: "Something went wrong when setting your username! Make sure it's a string of under 80 characters.", ephemeral: true});
+            await interaction.reply({ content: "Something went wrong when setting your username! Make sure it's a string of under 80 characters and that it doesn't contain multiple spaces in a row.", ephemeral: true});
             return;
         }
+
+        //log change
+        dh.logEvent(chatroomid, userid, "UU", `${olduserdata.username}  ${olduserdata.profilepic}  ${username}`);
+        mh.updateEvent(chatroomid, "UU", {oldusername: olduserdata.username, newusername: username, profilepic: olduserdata.profilepic});
 
         await interaction.reply({content: `Your username has been changed to: ${username}`, ephemeral: true});
     }

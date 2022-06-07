@@ -1,4 +1,4 @@
-var verif = require('../code/verification.js');
+var verif = require('../chatroomcode/verification.js');
 var err = require('../returncodes.json');
 
 var validUserTests = function(){

@@ -719,12 +719,19 @@ var updateProfilePicture = function(chatroomid, userid, newprofilepicturelink){
     return returncode;
 }
 
-var logEvent = function(chatroom, userid, type, content, attachments){
+var logEvent = function(chatroom, userid, type, content, attachments=[]){
     return fw.logEvent(chatroom, userid, type, content, attachments);
 }
 
 var parseLog = function(logarray){
     
+}
+
+//brokenchannel
+var brokenchannel = function(channelid){
+    var chatroompartof = retrieveChatroomForTerminal(channelid);
+    fw.removeChannel(chatroompartof, channelid);
+    fw.removeChannelMapping(channelid);
 }
 
 module.exports = {
@@ -771,7 +778,8 @@ module.exports = {
     register: register,
     updateUsername: updateUsername,
     updateProfilePicture: updateProfilePicture,
-    logEvent: logEvent
+    logEvent: logEvent,
+    brokenchannel: brokenchannel
 }
 
 /*
