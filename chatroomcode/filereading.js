@@ -51,12 +51,13 @@ retrieveLog
 
 const fs = require('fs');
 const err = require('../returncodes.json');
+const { chatroomPath, mappingPath } = require('./paths.js');
 
 //ownerOf
 //returns all the chatrooms in which a given discord user is the owner
 //returns an array with all the chatroom ids they belong to
 var ownerOf = function(userid){
-    var ownerrawdata = fs.readFileSync(`./chatroommapping/ownermapping.json`);
+    var ownerrawdata = fs.readFileSync(`${mappingPath}/ownermapping.json`);
     var ownerdata = JSON.parse(ownerrawdata.toString());
     if(ownerdata[`${userid}`])
         return ownerdata[`${userid}`];
@@ -67,7 +68,7 @@ var ownerOf = function(userid){
 //returns all the chatrooms in which a given discord user is an admin
 //returns an array with all the chatroom ids they belong to
 var adminFor = function(userid){
-    var adminrawdata = fs.readFileSync(`./chatroommapping/adminmapping.json`);
+    var adminrawdata = fs.readFileSync(`${mappingPath}/adminmapping.json`);
     var admindata = JSON.parse(adminrawdata.toString());
     if(admindata[`${userid}`])
         return admindata[`${userid}`];
@@ -78,7 +79,7 @@ var adminFor = function(userid){
 //returns all the chatrooms in which a given discord user is a user
 //returns an array with all the chatroom ids they belong to
 var userIn = function(userid){
-    var userrawdata = fs.readFileSync(`./chatroommapping/usermapping.json`);
+    var userrawdata = fs.readFileSync(`${mappingPath}/usermapping.json`);
     var userdata = JSON.parse(userrawdata.toString());
     if(userdata[`${userid}`])
         return userdata[`${userid}`];
@@ -89,7 +90,7 @@ var userIn = function(userid){
 //returns all the chatrooms in which a given channel is a terminal
 //returns an array with all the chatroom ids it belongs to
 var terminalIn = function(channelid){
-    var terminalrawdata = fs.readFileSync(`./chatroommapping/channelmapping.json`);
+    var terminalrawdata = fs.readFileSync(`${mappingPath}/channelmapping.json`);
     var terminaldata = JSON.parse(terminalrawdata.toString());
     if(terminaldata[`${channelid}`])
         return terminaldata[`${channelid}`];
@@ -100,11 +101,11 @@ var terminalIn = function(channelid){
 //returns whether a discord user is the owner of a given chatroom
 //returns true if yes, false if no or the chatroom doesn't exist
 var isOwner = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             if(chatroomdata.owner == `${userid}`)
                 return true;
@@ -119,11 +120,11 @@ var isOwner = function(chatroom, userid){
 //returns whether a discord user is an admin in a given chatroom
 //returns true if yes, false if no or the chatroom doesn't exist
 var isAdmin = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             if(chatroomdata.admins.includes(`${userid}`))
                 return true;
@@ -138,11 +139,11 @@ var isAdmin = function(chatroom, userid){
 //returns whether a channel is a terminal in a given chatroom
 //returns true if yes, false if no or the chatroom doesn't exist
 var isTerminal = function(chatroom, channelid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             if(chatroomdata.terminals.includes(`${channelid}`))
                 return true;
@@ -157,11 +158,11 @@ var isTerminal = function(chatroom, channelid){
 //returns whether a discord user is a user in a given chatroom
 //returns true if yes, false if no or the chatroom doesn't exist
 var isUser = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/users.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/users.json`))
         {
-            var userrawdata = fs.readFileSync(`./chatrooms/${chatroom}/users.json`);
+            var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/users.json`);
             var userdata = JSON.parse(userrawdata.toString());
             if(userdata[`${userid}`])
                 return true;
@@ -176,11 +177,11 @@ var isUser = function(chatroom, userid){
 //returns whether a user is registered in a given chatroom to speak
 //returns true if yes, false if no or the chatroom doesn't exist
 var isRegisteredUser = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/users.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/users.json`))
         {
-            var userrawdata = fs.readFileSync(`./chatrooms/${chatroom}/users.json`);
+            var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/users.json`);
             var userdata = JSON.parse(userrawdata.toString());
             if(userdata[`${userid}`])
             {
@@ -199,11 +200,11 @@ var isRegisteredUser = function(chatroom, userid){
 //retrieves the username for a given user id in a given chatroom
 //returns a string that is the username
 var username = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/users.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/users.json`))
         {
-            var userrawdata = fs.readFileSync(`./chatrooms/${chatroom}/users.json`);
+            var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/users.json`);
             var userdata = JSON.parse(userrawdata.toString());
             if(userdata[`${userid}`])
             {
@@ -220,11 +221,11 @@ var username = function(chatroom, userid){
 //retrieves the profile picture for a given user id in a given chatroom
 //returns a string containing the link to the profile picture
 var profilePicture = function(chatroom, userid){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/users.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/users.json`))
         {
-            var userrawdata = fs.readFileSync(`./chatrooms/${chatroom}/users.json`);
+            var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/users.json`);
             var userdata = JSON.parse(userrawdata.toString());
             if(userdata[`${userid}`])
             {
@@ -241,18 +242,18 @@ var profilePicture = function(chatroom, userid){
 //retrieves the ids for all chatrooms this bot has access to
 //returns them in an array of strings
 var retrieveAllChatroomIds = function(){
-    return fs.readdirSync(`./chatrooms`);
+    return fs.readdirSync(`${chatroomPath}`);
 }
 
 //retrieveOwner
 //retrieves the owner for a chatroom
 //returns a single user id
 var retrieveOwner = function(chatroom){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             return chatroomdata.owner;
         }
@@ -265,11 +266,11 @@ var retrieveOwner = function(chatroom){
 //retrieves all the admins for a chatroom
 //returns an array with all the user ids contained
 var retrieveAdmins = function(chatroom){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             return chatroomdata.admins;
         }
@@ -282,11 +283,11 @@ var retrieveAdmins = function(chatroom){
 //retrieves all the terminals for a chatroom
 //returns an array with all the channel ids contained
 var retrieveTerminals = function(chatroom){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/chatroom.json`))
         {
-            var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroom}/chatroom.json`);
+            var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/chatroom.json`);
             var chatroomdata = JSON.parse(chatroomrawdata.toString());
             return chatroomdata.terminals;
         }
@@ -299,11 +300,11 @@ var retrieveTerminals = function(chatroom){
 //retrieves all the users for a chatroom, along with their information
 //returns a JSON object with the user ids as keys and the JSON object containing other information as the values
 var retrieveUsers = function(chatroom){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/users.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/users.json`))
         {
-            var userrawdata = fs.readFileSync(`./chatrooms/${chatroom}/users.json`);
+            var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroom}/users.json`);
             var userdata = JSON.parse(userrawdata.toString());
             return userdata;
         }
@@ -317,7 +318,7 @@ var retrieveUsers = function(chatroom){
 //returns a JSON object with the owner ids as keys and an array containing the chatroom ids as values
 var retrieveOwnerMapping = function(){
     try{
-        var ownermappingraw = fs.readFileSync(`./chatroommapping/ownermapping.json`);
+        var ownermappingraw = fs.readFileSync(`${mappingPath}/ownermapping.json`);
         var ownermapping = JSON.parse(ownermappingraw.toString());
         return ownermapping;
     }
@@ -333,7 +334,7 @@ var retrieveOwnerMapping = function(){
 //returns a JSON object with the owner ids as keys and an array containing the chatroom ids as values
 var retrieveAdminMapping = function(){
     try{
-        var adminmappingraw = fs.readFileSync(`./chatroommapping/adminmapping.json`);
+        var adminmappingraw = fs.readFileSync(`${mappingPath}/adminmapping.json`);
         var adminmapping = JSON.parse(adminmappingraw.toString());
         return adminmapping;
     }
@@ -349,7 +350,7 @@ var retrieveAdminMapping = function(){
 //returns a JSON object with the channel ids as keys and an array containing the chatroom ids as values
 var retrieveTerminalMapping = function(){
     try{
-        var terminalmappingraw = fs.readFileSync(`./chatroommapping/channelmapping.json`);
+        var terminalmappingraw = fs.readFileSync(`${mappingPath}/channelmapping.json`);
         var terminalmapping = JSON.parse(terminalmappingraw.toString());
         return terminalmapping;
     }
@@ -365,7 +366,7 @@ var retrieveTerminalMapping = function(){
 //returns a JSON object with the user ids as keys and an array containing the chatroom ids as values
 var retrieveUserMapping = function(){
     try{
-        var usermappingraw = fs.readFileSync(`./chatroommapping/usermapping.json`);
+        var usermappingraw = fs.readFileSync(`${mappingPath}/usermapping.json`);
         var usermapping = JSON.parse(usermappingraw.toString());
         return usermapping;
     }
@@ -376,15 +377,41 @@ var retrieveUserMapping = function(){
     }
 }
 
+//retrieveNameToIdMapping
+//retrieves the list of names mapped to chatroom ids
+var retrieveNameToIdMapping = function(){
+    try{
+        var namemappingraw = fs.readFileSync(`${mappingPath}/nametoidmapping.json`);
+        var namemapping = JSON.parse(namemappingraw.toString());
+        return namemapping;
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
+//retrieveIdToNameMapping
+//retrieves the list of chatroom ids mapped to a name
+var retrieveIdToNameMapping = function(){
+    try{
+        var namemappingraw = fs.readFileSync(`${mappingPath}/idtonamemapping.json`);
+        var namemapping = JSON.parse(namemappingraw.toString());
+        return namemapping;
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+}
+
 //retrieveLog
 //retrieves the log for a chatroom
 //returns an array with all the individual messages/events contained
 var retrieveLog = function(chatroom){
-    if(fs.existsSync(`./chatrooms/${chatroom}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroom}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroom}/log.txt`))
+        if(fs.existsSync(`${chatroomPath}/${chatroom}/log.txt`))
         {
-            var lograwdata = fs.readFileSync(`./chatrooms/${chatroom}/log.txt`);
+            var lograwdata = fs.readFileSync(`${chatroomPath}/${chatroom}/log.txt`);
             var logdata = lograwdata.toString().split("\n");
             logdata.pop();
             return logdata;
@@ -415,5 +442,7 @@ module.exports = {
     retrieveAdminMapping: retrieveAdminMapping,
     retrieveTerminalMapping: retrieveTerminalMapping,
     retrieveUserMapping: retrieveUserMapping,
+    retrieveNameToIdMapping: retrieveNameToIdMapping,
+    retrieveIdToNameMapping: retrieveIdToNameMapping,
     retrieveLog: retrieveLog
 }

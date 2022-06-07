@@ -12,6 +12,8 @@ ownermapping.json
 adminmapping.json
 usermapping.json
 channelmapping.json
+nametoidmapping.json
+idtonamemapping.json
 
 Chatroom Files
 --------------
@@ -31,10 +33,14 @@ addOwnerMapping
 addAdminMapping
 addUserMapping
 addChannelMapping
+addNameToIdMapping
+addIdToNameMapping
 removeOwnerMapping
 removeAdminMapping
 removeUserMapping
 removeChannelMapping
+removeNameToIdMapping
+removeIdToNameMapping
 ------------------- Chatroom.json modifiers
 changeOwner
 addAdmin
@@ -55,10 +61,11 @@ const fs = require('fs');
 const err = require('../returncodes.json');
 const util = require('./utilities.js');
 const verif = require('./verification.js');
+const { chatroomPath, mappingPath } = require('./paths.js');
 
 var randomIdGenerator = function(){
     var newid = util.randomNumberGenerator(0, 999999);
-    while(fs.existsSync(`./chatrooms/${newid}`))
+    while(fs.existsSync(`${chatroomPath}/${newid}`))
         newid = util.randomNumberGenerator(0, 999999);
     return newid;
 }
@@ -66,7 +73,7 @@ var randomIdGenerator = function(){
 var createChatroomFiles = function(chatroomid, ownerid)
 {
     //verify chatroom doesn't exist
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
         return err.VALUE_ALREADY_PRESENT;
 
     //create chatroom.json and users.json initial objects and stringify
@@ -83,10 +90,10 @@ var createChatroomFiles = function(chatroomid, ownerid)
 
     //create and populate files
     try{
-        fs.mkdirSync(`./chatrooms/${chatroomid}`);
-        fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroominitjson);
-        fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usersinitjson);
-        fs.writeFileSync(`./chatrooms/${chatroomid}/log.txt`, "");
+        fs.mkdirSync(`${chatroomPath}/${chatroomid}`);
+        fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroominitjson);
+        fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usersinitjson);
+        fs.writeFileSync(`${chatroomPath}/${chatroomid}/log.txt`, "");
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -97,10 +104,10 @@ var createChatroomFiles = function(chatroomid, ownerid)
 
 var deleteChatroomFiles = function(chatroomid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
         try{
-            fs.rmSync(`./chatrooms/${chatroomid}`, { recursive: true, force: true });
+            fs.rmSync(`${chatroomPath}/${chatroomid}`, { recursive: true, force: true });
             return err.GOOD_EXECUTE;
         }
         catch(error){
@@ -116,7 +123,7 @@ var addOwnerMapping = function(ownerid, chatroomid)
 {
     //read data from file
     try{
-        var ownermaprawdata = fs.readFileSync(`./chatroommapping/ownermapping.json`);
+        var ownermaprawdata = fs.readFileSync(`${mappingPath}/ownermapping.json`);
         var ownermapdata = JSON.parse(ownermaprawdata.toString());
     }catch(error){
         console.log(error)
@@ -137,7 +144,7 @@ var addOwnerMapping = function(ownerid, chatroomid)
     //write back to file
     try{
         var ownermapnewrawdata = JSON.stringify(ownermapdata);
-        fs.writeFileSync(`./chatroommapping/ownermapping.json`, ownermapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/ownermapping.json`, ownermapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -151,7 +158,7 @@ var addAdminMapping = function(adminid, chatroomid)
 {
     //read data from file
     try{
-        var adminmaprawdata = fs.readFileSync(`./chatroommapping/adminmapping.json`);
+        var adminmaprawdata = fs.readFileSync(`${mappingPath}/adminmapping.json`);
         var adminmapdata = JSON.parse(adminmaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -172,7 +179,7 @@ var addAdminMapping = function(adminid, chatroomid)
     //write back to file
     try{
         var adminmapnewrawdata = JSON.stringify(adminmapdata);
-        fs.writeFileSync(`./chatroommapping/adminmapping.json`, adminmapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/adminmapping.json`, adminmapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -186,7 +193,7 @@ var addUserMapping = function(userid, chatroomid)
 {
     //read data from file
     try{
-        var usermaprawdata = fs.readFileSync(`./chatroommapping/usermapping.json`);
+        var usermaprawdata = fs.readFileSync(`${mappingPath}/usermapping.json`);
         var usermapdata = JSON.parse(usermaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -207,7 +214,7 @@ var addUserMapping = function(userid, chatroomid)
     //write back to file
     try{
         var usermapnewrawdata = JSON.stringify(usermapdata);
-        fs.writeFileSync(`./chatroommapping/usermapping.json`, usermapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/usermapping.json`, usermapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -221,7 +228,7 @@ var addChannelMapping = function(channelid, chatroomid)
 {
     //read data from file
     try{
-        var channelmaprawdata = fs.readFileSync(`./chatroommapping/channelmapping.json`);
+        var channelmaprawdata = fs.readFileSync(`${mappingPath}/channelmapping.json`);
         var channelmapdata = JSON.parse(channelmaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -232,12 +239,68 @@ var addChannelMapping = function(channelid, chatroomid)
     if(channelmapdata[channelid]) return err.VALUE_ALREADY_PRESENT;
 
     //write mapping
-    channelmapdata[channelid] = [`${chatroomid}`];
+    channelmapdata[channelid] = `${chatroomid}`;
 
     //write back to file
     try{
         var channelmapnewrawdata = JSON.stringify(channelmapdata);
-        fs.writeFileSync(`./chatroommapping/channelmapping.json`, channelmapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/channelmapping.json`, channelmapnewrawdata);
+    }catch(error){
+        console.log(error);
+        return err.FILE_WRITE_ERROR;
+    }
+
+    return err.GOOD_EXECUTE;
+}
+
+var addNameToIdMapping = function(name, id){
+    //read data from file
+    try{
+        var namemaprawdata = fs.readFileSync(`${mappingPath}/nametoidmapping.json`);
+        var namemapdata = JSON.parse(namemaprawdata.toString());
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+
+    //check if name already has mapping
+    if(namemapdata[`${name}`]) return err.VALUE_ALREADY_PRESENT;
+
+    //write mapping
+    namemapdata[`${name}`] = `${id}`;
+
+    //write back to file
+    try{
+        var namemapnewrawdata = JSON.stringify(namemapdata);
+        fs.writeFileSync(`${mappingPath}/nametoidmapping.json`, namemapnewrawdata);
+    }catch(error){
+        console.log(error);
+        return err.FILE_WRITE_ERROR;
+    }
+
+    return err.GOOD_EXECUTE;
+}
+
+var addIdToNameMapping = function(id, name){
+    //read data from file
+    try{
+        var namemaprawdata = fs.readFileSync(`${mappingPath}/idtonamemapping.json`);
+        var namemapdata = JSON.parse(namemaprawdata.toString());
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+
+    //check if name already has mapping
+    if(namemapdata[`${id}`]) return err.VALUE_ALREADY_PRESENT;
+
+    //write mapping
+    namemapdata[`${id}`] = `${name}`;
+
+    //write back to file
+    try{
+        var namemapnewrawdata = JSON.stringify(namemapdata);
+        fs.writeFileSync(`${mappingPath}/idtonamemapping.json`, namemapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -250,7 +313,7 @@ var removeOwnerMapping = function(ownerid, chatroomid)
 {
     //read data from file
     try{
-        var ownermaprawdata = fs.readFileSync(`./chatroommapping/ownermapping.json`);
+        var ownermaprawdata = fs.readFileSync(`${mappingPath}/ownermapping.json`);
         var ownermapdata = JSON.parse(ownermaprawdata.toString());
     }catch(error){
         console.log(error)
@@ -278,7 +341,7 @@ var removeOwnerMapping = function(ownerid, chatroomid)
     //write back to file
     try{
         var ownermapnewrawdata = JSON.stringify(ownermapdata);
-        fs.writeFileSync(`./chatroommapping/ownermapping.json`, ownermapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/ownermapping.json`, ownermapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -291,7 +354,7 @@ var removeAdminMapping = function(adminid, chatroomid)
 {
     //read data from file
     try{
-        var adminmaprawdata = fs.readFileSync(`./chatroommapping/adminmapping.json`);
+        var adminmaprawdata = fs.readFileSync(`${mappingPath}/adminmapping.json`);
         var adminmapdata = JSON.parse(adminmaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -319,7 +382,7 @@ var removeAdminMapping = function(adminid, chatroomid)
     //write back to file
     try{
         var adminmapnewrawdata = JSON.stringify(adminmapdata);
-        fs.writeFileSync(`./chatroommapping/adminmapping.json`, adminmapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/adminmapping.json`, adminmapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -332,7 +395,7 @@ var removeUserMapping = function(userid, chatroomid)
 {
     //read data from file
     try{
-        var usermaprawdata = fs.readFileSync(`./chatroommapping/usermapping.json`);
+        var usermaprawdata = fs.readFileSync(`${mappingPath}/usermapping.json`);
         var usermapdata = JSON.parse(usermaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -360,7 +423,7 @@ var removeUserMapping = function(userid, chatroomid)
     //write back to file
     try{
         var usermapnewrawdata = JSON.stringify(usermapdata);
-        fs.writeFileSync(`./chatroommapping/usermapping.json`, usermapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/usermapping.json`, usermapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -373,7 +436,7 @@ var removeChannelMapping = function(channelid)
 {
     //read data from file
     try{
-        var channelmaprawdata = fs.readFileSync(`./chatroommapping/channelmapping.json`);
+        var channelmaprawdata = fs.readFileSync(`${mappingPath}/channelmapping.json`);
         var channelmapdata = JSON.parse(channelmaprawdata.toString());
     }catch(error){
         console.log(error);
@@ -390,7 +453,65 @@ var removeChannelMapping = function(channelid)
     //write back to file
     try{
         var channelmapnewrawdata = JSON.stringify(channelmapdata);
-        fs.writeFileSync(`./chatroommapping/channelmapping.json`, channelmapnewrawdata);
+        fs.writeFileSync(`${mappingPath}/channelmapping.json`, channelmapnewrawdata);
+    }catch(error){
+        console.log(error);
+        return err.FILE_WRITE_ERROR;
+    }
+
+    return err.GOOD_EXECUTE;
+}
+
+var removeNameToIdMapping = function(name){
+    //read data from file
+    try{
+        var namemaprawdata = fs.readFileSync(`${mappingPath}/nametoidmapping.json`);
+        var namemapdata = JSON.parse(namemaprawdata.toString());
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+
+    //check if channel exists
+    if(!namemapdata[`${name}`])
+        return err.INVALID_VALUE;
+
+    //delete mapping
+    delete channelmapdata[`${name}`];
+
+    //write back to file
+    try{
+        var namemapnewrawdata = JSON.stringify(namemapdata);
+        fs.writeFileSync(`${mappingPath}/nametoidmapping.json`, namemapnewrawdata);
+    }catch(error){
+        console.log(error);
+        return err.FILE_WRITE_ERROR;
+    }
+
+    return err.GOOD_EXECUTE;
+}
+
+var removeIdToNameMapping = function(id){
+    //read data from file
+    try{
+        var namemaprawdata = fs.readFileSync(`${mappingPath}/idtonamemapping.json`);
+        var namemapdata = JSON.parse(namemaprawdata.toString());
+    }catch(error){
+        console.log(error);
+        return err.FILE_READ_ERROR;
+    }
+
+    //check if channel exists
+    if(!namemapdata[`${id}`])
+        return err.INVALID_CHANNEL_ID;
+
+    //delete mapping
+    delete namemapdata[`${id}`];
+
+    //write back to file
+    try{
+        var namemapnewrawdata = JSON.stringify(namemapdata);
+        fs.writeFileSync(`${mappingPath}/idtonamemapping.json`, namemapnewrawdata);
     }catch(error){
         console.log(error);
         return err.FILE_WRITE_ERROR;
@@ -401,13 +522,13 @@ var removeChannelMapping = function(channelid)
 
 var changeOwner = function(chatroomid, newownerid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroomid}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/chatroom.json`))
         {
             //read from file
             try{
-                var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/chatroom.json`);
+                var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`);
                 var chatroomdata = JSON.parse(chatroomrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -424,7 +545,7 @@ var changeOwner = function(chatroomid, newownerid)
             //write back to file
             try{
                 var chatroomnewrawdata = JSON.stringify(chatroomdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroomnewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroomnewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -438,13 +559,13 @@ var changeOwner = function(chatroomid, newownerid)
 
 var addAdmin = function(chatroomid, adminid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroomid}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/chatroom.json`))
         {
             //read from file
             try{
-                var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/chatroom.json`);
+                var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`);
                 var chatroomdata = JSON.parse(chatroomrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -459,7 +580,7 @@ var addAdmin = function(chatroomid, adminid)
             //write back to file
             try{
                 var chatroomnewrawdata = JSON.stringify(chatroomdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroomnewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroomnewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -473,13 +594,13 @@ var addAdmin = function(chatroomid, adminid)
 
 var removeAdmin = function(chatroomid, adminid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroomid}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/chatroom.json`))
         {
             //read from file
             try{
-                var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/chatroom.json`);
+                var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`);
                 var chatroomdata = JSON.parse(chatroomrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -496,7 +617,7 @@ var removeAdmin = function(chatroomid, adminid)
             //write back to file
             try{
                 var chatroomnewrawdata = JSON.stringify(chatroomdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroomnewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroomnewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -510,13 +631,13 @@ var removeAdmin = function(chatroomid, adminid)
 
 var addChannel = function(chatroomid, channelid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroomid}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/chatroom.json`))
         {
             //read from file
             try{
-                var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/chatroom.json`);
+                var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`);
                 var chatroomdata = JSON.parse(chatroomrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -531,7 +652,7 @@ var addChannel = function(chatroomid, channelid)
             //write back to file
             try{
                 var chatroomnewrawdata = JSON.stringify(chatroomdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroomnewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroomnewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -545,13 +666,13 @@ var addChannel = function(chatroomid, channelid)
 
 var removeChannel = function(chatroomid, channelid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`))
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`))
     {
-        if(fs.existsSync(`./chatrooms/${chatroomid}/chatroom.json`))
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/chatroom.json`))
         {
             //read from file
             try{
-                var chatroomrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/chatroom.json`);
+                var chatroomrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`);
                 var chatroomdata = JSON.parse(chatroomrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -568,7 +689,7 @@ var removeChannel = function(chatroomid, channelid)
             //write back to file
             try{
                 var chatroomnewrawdata = JSON.stringify(chatroomdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/chatroom.json`, chatroomnewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/chatroom.json`, chatroomnewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -582,11 +703,11 @@ var removeChannel = function(chatroomid, channelid)
 
 var addUser = function(chatroomid, userid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`)){
-        if(fs.existsSync(`./chatrooms/${chatroomid}/users.json`)){
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`)){
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/users.json`)){
             //read from file
             try{
-                var userrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/users.json`);
+                var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/users.json`);
                 var userdata = JSON.parse(userrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -607,7 +728,7 @@ var addUser = function(chatroomid, userid)
             //write back to file
             try{
                 var usernewrawdata = JSON.stringify(userdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usernewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usernewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -622,11 +743,11 @@ var addUser = function(chatroomid, userid)
 //removeUser
 var removeUser = function(chatroomid, userid)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`)){
-        if(fs.existsSync(`./chatrooms/${chatroomid}/users.json`)){
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`)){
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/users.json`)){
             //read from file
             try{
-                var userrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/users.json`);
+                var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/users.json`);
                 var userdata = JSON.parse(userrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -641,7 +762,7 @@ var removeUser = function(chatroomid, userid)
             //write back to file
             try{
                 var usernewrawdata = JSON.stringify(userdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usernewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usernewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -665,11 +786,11 @@ var changeUsername = function(chatroomid, userid, newusername)
             return usernameverification;
     }
 
-    if(fs.existsSync(`./chatrooms/${chatroomid}`)){
-        if(fs.existsSync(`./chatrooms/${chatroomid}/users.json`)){
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`)){
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/users.json`)){
             //read from file
             try{
-                var userrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/users.json`);
+                var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/users.json`);
                 var userdata = JSON.parse(userrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -684,7 +805,7 @@ var changeUsername = function(chatroomid, userid, newusername)
             //write back to file
             try{
                 var usernewrawdata = JSON.stringify(userdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usernewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usernewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -699,11 +820,11 @@ var changeUsername = function(chatroomid, userid, newusername)
 //changeProfilePicture
 var changeProfilePicture = function(chatroomid, userid, newprofilepicture)
 {
-    if(fs.existsSync(`./chatrooms/${chatroomid}`)){
-        if(fs.existsSync(`./chatrooms/${chatroomid}/users.json`)){
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`)){
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/users.json`)){
             //read from file
             try{
-                var userrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/users.json`);
+                var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/users.json`);
                 var userdata = JSON.parse(userrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -718,7 +839,7 @@ var changeProfilePicture = function(chatroomid, userid, newprofilepicture)
             //write back to file
             try{
                 var usernewrawdata = JSON.stringify(userdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usernewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usernewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -739,11 +860,11 @@ var changeRegistration = function(chatroomid, userid, registrationstatus)
     if(registrationstatus != "N" && registrationstatus != "Y")
         return err.INVALID_VALUE;
 
-    if(fs.existsSync(`./chatrooms/${chatroomid}`)){
-        if(fs.existsSync(`./chatrooms/${chatroomid}/users.json`)){
+    if(fs.existsSync(`${chatroomPath}/${chatroomid}`)){
+        if(fs.existsSync(`${chatroomPath}/${chatroomid}/users.json`)){
             //read from file
             try{
-                var userrawdata = fs.readFileSync(`./chatrooms/${chatroomid}/users.json`);
+                var userrawdata = fs.readFileSync(`${chatroomPath}/${chatroomid}/users.json`);
                 var userdata = JSON.parse(userrawdata.toString());
             }catch(error){
                 console.log(error);
@@ -758,7 +879,7 @@ var changeRegistration = function(chatroomid, userid, registrationstatus)
             //write back to file
             try{
                 var usernewrawdata = JSON.stringify(userdata);
-                fs.writeFileSync(`./chatrooms/${chatroomid}/users.json`, usernewrawdata);
+                fs.writeFileSync(`${chatroomPath}/${chatroomid}/users.json`, usernewrawdata);
             }catch(error){
                 console.log(error);
                 return err.FILE_WRITE_ERROR;
@@ -773,16 +894,23 @@ var changeRegistration = function(chatroomid, userid, registrationstatus)
 //logEvent
 //accepts a chatroom id and a log event, with the user id, the type of event, and the contents of the string
 //appends them to the end of the log file
-var logEvent = function(chatroom, user, type, contents){
+var logEvent = function(chatroom, user, type, contents, attachmentlinks){
     /*if(verif.validUser(user))
     {*/
         if(verif.validLogType(type))
         {
-            if(fs.existsSync(`./chatrooms/${chatroom}`))
+            if(fs.existsSync(`${chatroomPath}/${chatroom}`))
             {
-                if(fs.existsSync(`./chatrooms/${chatroom}/log.txt`))
+                if(fs.existsSync(`${chatroomPath}/${chatroom}/log.txt`))
                 {
-                    fs.appendFileSync(`./chatrooms/${chatroom}/log.txt`, `${user}  ${type}  ${contents}\n`);
+                    fs.appendFileSync(`${chatroomPath}/${chatroom}/log.txt`, `${user}  ${type}  ${contents}`);
+                    if(attachmentlinks.length > 0){
+                        fs.appendFileSync(`${chatroomPath}/${chatroom}/log.txt`, " ");
+                        attachmentlinks.forEach(link => {
+                            fs.appendFileSync(`${chatroomPath}/${chatroom}/log.txt`, ` ${link}`);
+                        })
+                    }
+                    fs.appendFileSync(`${chatroomPath}/${chatroom}/log.txt`, "\n");
                     return err.GOOD_EXECUTE;
                 }
                 return err.FILE_DOESNT_EXIST;
@@ -802,10 +930,14 @@ module.exports = {
     addAdminMapping: addAdminMapping,
     addUserMapping: addUserMapping,
     addChannelMapping: addChannelMapping,
+    addNameToIdMapping: addNameToIdMapping,
+    addIdToNameMapping: addIdToNameMapping,
     removeOwnerMapping: removeOwnerMapping,
     removeAdminMapping: removeAdminMapping,
     removeUserMapping: removeUserMapping,
     removeChannelMapping: removeChannelMapping,
+    removeNameToIdMapping: removeNameToIdMapping,
+    removeIdToNameMapping: removeIdToNameMapping,
     changeOwner: changeOwner,
     addAdmin: addAdmin,
     removeAdmin: removeAdmin,

@@ -1,5 +1,5 @@
-var fr = require('../code/filereading.js');
-var fw = require('../code/filewriting.js');
+var fr = require('../chatroomcode/filereading.js');
+var fw = require('../chatroomcode/filewriting.js');
 var err = require('../returncodes.json');
 
 //equals operator code taken from: https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript

@@ -41,12 +41,16 @@ retrieveAdmins
 retrieveUsers
 retrieveTerminals
 retrieveLog
+retrieveUserMapping
+retrieveOwnerMapping
+retrieveAdminMapping
 ------------- Message Handling
 checkTerminalLegitimacy
 retrieveChatroomForTerminal
 checkAuthorLegitimacy
 retrieveUserData
 ------------- Verification
+isName
 isTerminal
 isUser
 isRegisteredUser
@@ -65,6 +69,7 @@ removeUser
 register
 updateUsername
 updateProfilePicture
+logEvent
 */
 const fw = require('./filewriting.js');
 const fr = require('./filereading.js');
@@ -73,6 +78,8 @@ const verif = require('./verification.js');
 
 var ChatroomData;
 var ChannelMapping;
+var NameToIdMapping;
+var IdToNameMapping;
 
 var getChatroomData = function(){
     return ChatroomData;
@@ -80,6 +87,14 @@ var getChatroomData = function(){
 
 var getChannelMapping = function(){
     return ChannelMapping;
+}
+
+var getNameToIdMapping = function(){
+    return NameToIdMapping;
+}
+
+var getIdToNameMapping = function(){
+    return IdToNameMapping;
 }
 
 
@@ -126,13 +141,13 @@ var loadChatrooms = function(){
             ChatroomData[`${chatroomid}`].admins = chatroomadmins;
             ChatroomData[`${chatroomid}`].terminals = chatroomterminals;
             ChatroomData[`${chatroomid}`].users = chatroomusers;
-            //console.log(`chatroom ${chatroomid}: Successfully Loaded!`);
+            console.log(`chatroom ${chatroomid}: Successfully Loaded!`);
         }
         else{
             console.log(`Chatroom ${chatroomid}: Loading FAILED!\n
             Owner: ${ownersuccess}\n
             Admins: ${adminssuccess}\n
-            Terminals: ${terminalssucess}\n
+            Terminals: ${terminalssuccess}\n
             Users: ${userssuccess}`);
         }
     });
@@ -177,7 +192,7 @@ var loadIndividualChatroom = function(chatroomid){
             console.log(`Chatroom ${chatroomid}: Loading FAILED!\n
             Owner: ${ownersuccess}\n
             Admins: ${adminssuccess}\n
-            Terminals: ${terminalssucess}\n
+            Terminals: ${terminalssuccess}\n
             Users: ${userssuccess}`);
         }
     }catch(error){
@@ -201,6 +216,18 @@ var loadChannelMapping = function(){
     ChannelMapping = fr.retrieveTerminalMapping();
     if(ChannelMapping == err.FILE_READ_ERROR)
         console.log(`CRITICAL ERROR! Channel Mapping failed to load!`);
+}
+
+var loadNameToIdMapping = function(){
+    NameToIdMapping = fr.retrieveNameToIdMapping();
+    if(NameToIdMapping == err.FILE_READ_ERROR)
+        console.log(`CRITICAL ERROR! Name to Id Mapping failed to load!`);
+}
+
+var loadIdToNameMapping = function(){
+    IdToNameMapping = fr.retrieveIdToNameMapping();
+    if(IdToNameMapping == err.FILE_READ_ERROR)
+        console.log(`CRITICAL ERROR! Id to Name Mapping failed to load!`);
 }
 
 //------------------------------------------------------------- Information Retrieval
@@ -253,6 +280,51 @@ var retrieveUsers = function(chatroomid){
 //returns the log for a chatroom, or either a chatroom doesn't exist error or a file doesn't exist error
 var retrieveLog = function(chatroomid){
     return fr.retrieveLog(chatroomid);
+}
+
+//retrieveOwnerMapping
+//returns the list of chatrooms a given user id is an owner for, if any
+var retrieveOwnerMapping = function(user){
+    var ownermapping = fr.retrieveOwnerMapping();
+    if(ownermapping[`${user}`])
+        return ownermapping[`${user}`];
+    return [];
+}
+
+//retrieveAdminMapping
+//returns the list of chatrooms a given user id is an admin for, if any
+var retrieveAdminMapping = function(user){
+    var adminmapping = fr.retrieveAdminMapping();
+    if(adminmapping[`${user}`])
+        return adminmapping[`${user}`];
+    return [];
+}
+
+//retrieveUserMapping
+//returns the list of games a given user id is a user in, if any
+var retrieveUserMapping = function(user){
+    var usermapping = fr.retrieveUserMapping();
+    if(usermapping[`${user}`])
+        return usermapping[`${user}`];
+    return [];
+}
+
+//retrieveName
+//retrieves the name that is mapped to a given id
+//returns the name if it exists, or an invalid value error if it doesn't
+var retrieveName = function(id){
+    if(IdToNameMapping[`${id}`])
+        return IdToNameMapping[`${id}`];
+    return err.INVALID_VALUE;
+}
+
+//retrieveId
+//retrieves the id that is mapped to a given name
+//returns the id if it exists, or an invalid value error if it doesn't
+var retrieveId = function(name){
+    if(NameToIdMapping[`${name}`])
+        return NameToIdMapping[`${name}`];
+    return err.INVALID_VALUE;
 }
 
 //------------------------------------------------------------- Message Handling
@@ -326,6 +398,14 @@ var retrieveUserData = function(chatroomid, authorid){
 }
 
 //------------------------------------------------------------- Verification
+
+//isName
+//returns if a given name is a loaded chatroom name or not
+//returns true if it is, false otherwise
+var isName = function(name){
+    if(NameToIdMapping[`${name}`]) return true;
+    return false;
+}
 
 //isChatroom
 //returns if a given id is a loaded chatroom id or not
@@ -401,7 +481,7 @@ var isRegisteredUser = function(chatroomid, userid){
 //performs the necessary steps to create a chatroom and add the owner and admin mapping for its owner
 //reloads the chatroom data when finished
 //returns good execute on success, or the error if there's an error creating the files
-var createChatroom = function(ownerid){
+var createChatroom = function(ownerid, name){
     if(!verif.validUser(ownerid)) return err.INVALID_OWNER_ID;
     var newchatroomid = fw.randomIdGenerator();
 
@@ -412,8 +492,13 @@ var createChatroom = function(ownerid){
     //add mapping
     fw.addOwnerMapping(ownerid, newchatroomid);
     fw.addAdminMapping(ownerid, newchatroomid);
+    fw.addNameToIdMapping(name, newchatroomid);
+    fw.addIdToNameMapping(newchatroomid, name);
 
+    //reload chatroom data
     loadIndividualChatroom(newchatroomid);
+    loadNameToIdMapping();
+    loadIdToNameMapping();
 
     return err.GOOD_EXECUTE;
 }
@@ -431,6 +516,7 @@ var deleteChatroom = function(chatroomid, ownerid){
     var admins = retrieveAdmins(chatroomid);
     var users = retrieveUsers(chatroomid);
     var terminals = retrieveTerminals(chatroomid);
+    var name = IdToNameMapping[`${id}`];
 
     //delete all map references
     fw.removeOwnerMapping(owner, chatroomid);
@@ -443,6 +529,8 @@ var deleteChatroom = function(chatroomid, ownerid){
     terminals.forEach(terminal => {
         fw.removeChannelMapping(terminal);
     })
+    fw.removeIdToNameMapping(chatroomid);
+    fw.removeNameToIdMapping(chatroomid);
 
     //delete chatroom files
     fw.deleteChatroomFiles(chatroomid);
@@ -450,6 +538,8 @@ var deleteChatroom = function(chatroomid, ownerid){
     //reload ChatroomData
     unloadIndividualChatroom(chatroomid);
     loadChannelMapping();
+    loadNameToIdMapping();
+    loadIdToNameMapping();
 
     return err.GOOD_EXECUTE;
 }
@@ -461,12 +551,19 @@ var changeOwner = function(chatroomid, requesterid, newownerid){
     if(!isChatroom(chatroomid)) return err.CHATROOM_DOESNT_EXIST;
     if(!isOwner(chatroomid, requesterid)) return err.INVALID_OWNER_ID;
     if(!verif.validUser(newownerid)) return err.INVALID_VALUE;
+    //retrieve old owner id
+    var oldownerid = fw.retrieveOwner(chatroomid);
     //change owner
-    var returncode = fw.changeOwner(chatroomid, newownerid);
+    var returncodechatroom = fw.changeOwner(chatroomid, newownerid);
+    var returncodemapping = fw.removeOwnerMapping(oldownerid, chatroomid);
+    var returncodemapping2 = fw.addOwnerMapping(newownerid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_REMOVAL_ERROR;
+    if(returncodemapping2 != err.GOOD_EXECUTE) return err.MAP_ADDING_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //addAdmin
@@ -477,11 +574,14 @@ var addAdmin = function(chatroomid, requesterid, newadminid){
     if(!isOwner(chatroomid, requesterid)) return err.INVALID_OWNER_ID;
     if(!verif.validUser(newadminid)) return err.INVALID_VALUE;
     //add admin
-    var returncode = fw.addAdmin(chatroomid, newadminid);
+    var returncodechatroom = fw.addAdmin(chatroomid, newadminid);
+    var returncodemapping = fw.addAdminMapping(newadminid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_ADDING_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //removeAdmin
@@ -492,11 +592,14 @@ var removeAdmin = function(chatroomid, requesterid, adminid){
     if(!isOwner(chatroomid, requesterid)) return err.INVALID_OWNER_ID;
     if(isOwner(chatroomid, adminid)) return err.INVALID_VALUE;
     //remove admin
-    var returncode = fw.removeAdmin(chatroomid, adminid);
+    var returncodechatroom = fw.removeAdmin(chatroomid, adminid);
+    var returncodemapping = fw.removeAdminMapping(adminid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_REMOVAL_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //addTerminal
@@ -507,11 +610,15 @@ var addTerminal = function(chatroomid, requesterid, channelid){
     if(!isAdmin(chatroomid, requesterid)) return err.INVALID_ADMIN_ID;
     if(!verif.validChannel(channelid)) return err.INVALID_VALUE;
     //add terminal
-    var returncode = fw.addChannel(chatroomid, channelid);
+    var returncodechatroom = fw.addChannel(chatroomid, channelid);
+    var returncodemapping = fw.addChannelMapping(channelid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
+    loadChannelMapping();
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_ADDING_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //removeTerminal
@@ -521,11 +628,16 @@ var removeTerminal = function(chatroomid, requesterid, channelid){
     if(!isChatroom(chatroomid)) return err.CHATROOM_DOESNT_EXIST;
     if(!isAdmin(chatroomid, requesterid)) return err.INVALID_ADMIN_ID;
     //remove terminal
-    var returncode = fw.removeChannel(chatroomid, channelid);
+    var returncodechatroom = fw.removeChannel(chatroomid, channelid);
+    //remove terminal mapping
+    var returncodemapping = fw.removeChannelMapping(channelid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
+    loadChannelMapping();
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_REMOVAL_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //addUser
@@ -536,11 +648,14 @@ var addUser = function(chatroomid, requesterid, userid){
     if(!isAdmin(chatroomid, requesterid)) return err.INVALID_ADMIN_ID;
     if(!verif.validUser(userid)) return err.INVALID_VALUE;
     //add user
-    var returncode = fw.addUser(chatroomid, userid);
+    var returncodechatroom = fw.addUser(chatroomid, userid);
+    var returncodemapping = fw.addUserMapping(userid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_ADDING_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //removeUser
@@ -550,11 +665,14 @@ var removeUser = function(chatroomid, requesterid, userid){
     if(!isChatroom(chatroomid)) return err.CHATROOM_DOESNT_EXIST;
     if(!isAdmin(chatroomid, requesterid)) return err.INVALID_ADMIN_ID;
     //remove user
-    var returncode = fw.removeUser(chatroomid, userid);
+    var returncodechatroom = fw.removeUser(chatroomid, userid);
+    var returncodemapping = fw.removeUserMapping(userid, chatroomid);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
-    return returncode;
+    if(returncodechatroom != err.GOOD_EXECUTE) return err.CHATROOM_REMOVAL_ERROR;
+    if(returncodemapping != err.GOOD_EXECUTE) return err.MAP_REMOVAL_ERROR;
+    return err.GOOD_EXECUTE;
 }
 
 //register
@@ -566,7 +684,7 @@ var register = function(chatroomid, userid){
     //register
     var returncode = fw.changeRegistration(chatroomid, userid, "Y");
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
     return returncode;
 }
@@ -582,7 +700,7 @@ var updateUsername = function(chatroomid, userid, newusername){
     //change username
     var returncode = fw.changeUsername(chatroomid, userid, newusername);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
     return returncode;
 }
@@ -596,27 +714,45 @@ var updateProfilePicture = function(chatroomid, userid, newprofilepicturelink){
     //change profile picture
     var returncode = fw.changeProfilePicture(chatroomid, userid, newprofilepicturelink);
     //reload chatroom data
-    if(returncode == err.GOOD_EXECUTE) loadIndividualChatroom(chatroomid);
+    loadIndividualChatroom(chatroomid);
     //return code
     return returncode;
+}
+
+var logEvent = function(chatroom, userid, type, content, attachments){
+    return fw.logEvent(chatroom, userid, type, content, attachments);
+}
+
+var parseLog = function(logarray){
+    
 }
 
 module.exports = {
     getChatroomData: getChatroomData,
     getChannelMapping: getChannelMapping,
+    getNameToIdMapping: getNameToIdMapping,
+    getIdToNameMapping: getIdToNameMapping,
     loadChatrooms: loadChatrooms,
     loadIndividualChatroom: loadIndividualChatroom,
     unloadIndividualChatroom: unloadIndividualChatroom,
     loadChannelMapping: loadChannelMapping,
+    loadNameToIdMapping: loadNameToIdMapping,
+    loadIdToNameMapping: loadIdToNameMapping,
     retrieveOwner: retrieveOwner,
     retrieveAdmins: retrieveAdmins,
     retrieveUsers: retrieveUsers,
     retrieveTerminals: retrieveTerminals,
     retrieveLog: retrieveLog,
+    retrieveUserMapping: retrieveUserMapping,
+    retrieveOwnerMapping: retrieveOwnerMapping,
+    retrieveAdminMapping: retrieveAdminMapping,
+    retrieveName: retrieveName,
+    retrieveId: retrieveId,
     checkTerminalLegitimacy: checkTerminalLegitimacy,
     retrieveChatroomForTerminal: retrieveChatroomForTerminal,
     checkAuthorLegitimacy: checkAuthorLegitimacy,
     retrieveUserData: retrieveUserData,
+    isName: isName,
     isChatroom: isChatroom,
     isTerminal: isTerminal,
     isOwner: isOwner,
@@ -634,7 +770,8 @@ module.exports = {
     removeUser: removeUser,
     register: register,
     updateUsername: updateUsername,
-    updateProfilePicture: updateProfilePicture
+    updateProfilePicture: updateProfilePicture,
+    logEvent: logEvent
 }
 
 /*
@@ -675,4 +812,5 @@ removeUser
 register
 updateUsername
 updateProfilePicture
+logEvent
 */

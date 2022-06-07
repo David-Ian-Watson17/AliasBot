@@ -1,6 +1,5 @@
-const { printChannelMapping } = require('../code/datahandler.js');
-var dh = require('../code/datahandler.js');
-var fw = require('../code/filewriting.js');
+var dh = require('../chatroomcode/datahandler.js');
+var fw = require('../chatroomcode/filewriting.js');
 var err = require('../returncodes.json');
 
 /*
@@ -312,6 +311,8 @@ var removeAdminTests = function(){
     fw.createChatroomFiles(111111, 1111111111111111);
     fw.addAdmin(111111, 4);
     fw.addAdmin(111111, 5);
+    fw.addAdminMapping(4, 111111);
+    fw.addAdminMapping(5, 111111);
 
     dh.loadChatrooms();
 
@@ -325,7 +326,7 @@ var removeAdminTests = function(){
 
     console.log(`removeAdmin Not Valid Chatroom: ${return1 == err.CHATROOM_DOESNT_EXIST}`);
     console.log(`removeAdmin Valid Request: ${return2 == err.GOOD_EXECUTE}`);
-    console.log(`removeAdmin Invalid Admin: ${return3 == err.VALUE_NOT_PRESENT}`);
+    console.log(`removeAdmin Invalid Admin: ${return3 == err.CHATROOM_REMOVAL_ERROR}`);
     console.log(`removeAdmin Invalid Requester: ${return4 == err.INVALID_OWNER_ID}`);
     console.log(`removeAdmin Can't Remove Owner: ${return5 == err.INVALID_VALUE}`);
 }
@@ -334,6 +335,8 @@ var removeTerminalTests = function(){
     fw.createChatroomFiles(111111, 1111111111111111);
     fw.addChannel(111111, 4);
     fw.addChannel(111111, 5);
+    fw.addChannelMapping("4", "111111");
+    fw.addChannelMapping("5", "111111");
 
     dh.loadChatrooms();
 
@@ -346,7 +349,7 @@ var removeTerminalTests = function(){
 
     console.log(`removeTerminal No Such Chatroom: ${return1 == err.CHATROOM_DOESNT_EXIST}`);
     console.log(`removeTerminal Valid Request: ${return2 == err.GOOD_EXECUTE}`);
-    console.log(`removeTerminal Invalid Terminal: ${return3 == err.VALUE_NOT_PRESENT}`);
+    console.log(`removeTerminal Invalid Terminal: ${return3 == err.CHATROOM_REMOVAL_ERROR}`);
     console.log(`removeTerminal Invalid Requester: ${return4 == err.INVALID_ADMIN_ID}`);
 }
 
@@ -354,6 +357,8 @@ var removeUserTests = function(){
     fw.createChatroomFiles(111111, 1111111111111111);
     fw.addUser(111111, 4);
     fw.addUser(111111, 5);
+    fw.addUserMapping(4, 111111);
+    fw.addUserMapping(5, 111111);
 
     dh.loadChatrooms();
 
@@ -366,7 +371,7 @@ var removeUserTests = function(){
 
     console.log(`removeUser Not Valid Chatroom: ${return1 == err.CHATROOM_DOESNT_EXIST}`);
     console.log(`removeUser Valid Request: ${return2 == err.GOOD_EXECUTE}`);
-    console.log(`removeUser Invalid User: ${return3 == err.VALUE_NOT_PRESENT}`);
+    console.log(`removeUser Invalid User: ${return3 == err.CHATROOM_REMOVAL_ERROR}`);
     console.log(`removeUser Invalid Requester: ${return4 == err.INVALID_ADMIN_ID}`);
 }
 
